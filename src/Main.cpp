@@ -8,12 +8,12 @@ int main()
     TestResult tr;
     TestRegistry::runAllTests(tr);
 
-    Synthesizer synth(48000, 16);
+    /*Synthesizer synth(48000, 16);
 
     synth.initializeTempo();
 
     std::ofstream audioFile {synth.createAudioFile()};
 
-    synth.finalizeFile(audioFile);
+    synth.finalizeFile(audioFile);*/
 
 }

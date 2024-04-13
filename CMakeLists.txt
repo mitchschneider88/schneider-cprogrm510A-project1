@@ -7,8 +7,6 @@ project(Schneider-Project1 VERSION 1.0)
 include_directories(./include/CppUnitLite)
 
 set(SOURCE_FILES
-    src/Main.cpp src/Synthesizer.cpp src/Synthesizer.h src/WavFileManager.cpp
-        src/WavFileManager.h src/WavHeader.h src/Tests.cpp
         include/CppUnitLite/Failure.h
         include/CppUnitLite/Test.h
         include/CppUnitLite/TestHarness.h
@@ -19,7 +17,16 @@ set(SOURCE_FILES
         CppUnitLite/Test.cpp
         CppUnitLite/TestRegistry.cpp
         CppUnitLite/TestResult.cpp
-        CppUnitLite/WFailure.cpp)
+        CppUnitLite/WFailure.cpp
+        src/Main.cpp
+        src/Synthesizer.cpp src/Synthesizer.h
+        src/WavFileManager.cpp
+        src/WavFileManager.h
+        src/WavHeader.h src/Tests.cpp
+        src/Oscillator.cpp
+        src/Oscillator.h
+        src/SineOscillator.cpp
+        src/SineOscillator.h)
 
 add_executable(${PROJECT_NAME}.exe ${SOURCE_FILES})
 

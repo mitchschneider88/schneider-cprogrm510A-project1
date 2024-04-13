@@ -50,7 +50,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(' ', buffer.at(15));
 
     /* little endian reconstruction of the int '16' (PCM) stored in 4 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int subchunk1Size = 0;
     for (int i = 19; i >= 16; --i)
     {
@@ -61,7 +61,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(16, subchunk1Size);
 
     /* little endian reconstruction of the int '1' (PCM) stored in 2 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int audioFormat = 0;
     for (int i = 21; i >= 20; --i)
     {
@@ -72,7 +72,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(1, audioFormat);
 
     /* little endian reconstruction of the int '1' (mono) stored in 2 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int numChannels = 0;
     for (int i = 23; i >= 22; --i)
     {
@@ -83,7 +83,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(1, numChannels);
 
     /* little endian reconstruction of the sample rate stored in 4 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int wavHeaderSampleRate = 0;
     for (int i = 27; i >= 24; --i)
     {
@@ -94,7 +94,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(sampleRate, wavHeaderSampleRate);
 
     /* little endian reconstruction of the byte rate stored in 4 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int byteRate = 0;
     for (int i = 31; i >= 28; --i)
     {
@@ -105,7 +105,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL((sampleRate * numChannels * (subchunk1Size/8)), byteRate);
 
     /* little endian reconstruction of the block align stored in 2 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int blockAlign = 0;
     for (int i = 33; i >= 32; --i)
     {
@@ -116,7 +116,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(numChannels * (subchunk1Size/8), blockAlign);
 
     /* little endian reconstruction of the bit depth stored in 2 bytes, as specified by
-    the canonincal wav file format */
+    the canonical wav file format */
     int wavHeaderBitDepth = 0;
     for (int i = 35; i >= 34; --i)
     {
