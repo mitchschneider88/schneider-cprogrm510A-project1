@@ -41,15 +41,22 @@ void WavFileManager::finalizeFile(std::ofstream& file)
     file.close();
 }
 
-int WavFileManager::getWavHeaderSampleRate()
+int WavFileManager::getWavHeaderSampleRate() const
 {
     return _wavHeader.sampleRate;
 }
 void WavFileManager::setWavHeaderSampleRate(int sr)
 {
     _wavHeader.sampleRate = sr;
+    updateByteRate(sr);
 }
-int WavFileManager::getWavHeaderBitDepth()
+
+void WavFileManager::updateByteRate(int newSampleRate)
+{
+    _wavHeader.byteRate = (newSampleRate * _wavHeader.numChan * (_wavHeader.subchunk1Size / 8));
+}
+
+int WavFileManager::getWavHeaderBitDepth() const
 {
     return _wavHeader.bitDepth;
 }
