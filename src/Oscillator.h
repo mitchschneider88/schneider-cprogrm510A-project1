@@ -1,3 +1,5 @@
+#include <cmath>
+
 class Oscillator
 {
 public:
