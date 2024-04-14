@@ -41,10 +41,6 @@ void WavFileManager::finalizeFile(std::ofstream& file)
     file.close();
 }
 
-int WavFileManager::getWavHeaderSampleRate() const
-{
-    return _wavHeader.sampleRate;
-}
 void WavFileManager::setWavHeaderSampleRate(int sr)
 {
     _wavHeader.sampleRate = sr;
@@ -56,27 +52,16 @@ void WavFileManager::updateByteRate(int newSampleRate)
     _wavHeader.byteRate = (newSampleRate * _wavHeader.numChan * (_wavHeader.subchunk1Size / 8));
 }
 
-int WavFileManager::getWavHeaderBitDepth() const
-{
-    return _wavHeader.bitDepth;
-}
 void WavFileManager::setWavHeaderBitDepth(int bd)
 {
     _wavHeader.bitDepth = bd;
 }
 
-int WavFileManager::getPreAudioPosition()
-{
-    return _preAudioPosition;
-}
 void WavFileManager::setPreAudioPosition(std::ofstream& file)
 {
     _preAudioPosition = {static_cast<int>(file.tellp())};
 }
-int WavFileManager::getPostAudioPosition()
-{
-    return _postAudioPosition;
-}
+
 void WavFileManager::setPostAudioPosition(std::ofstream& file)
 {
     _postAudioPosition = {static_cast<int>(file.tellp())};

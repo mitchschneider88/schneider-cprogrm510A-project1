@@ -3,23 +3,22 @@
 class Oscillator
 {
 public:
-    virtual float renderAudio() = 0;
+    // implement rule of 5
+    virtual ~Oscillator() = default;
 
-    void setOffset(float offset);
-    void setAmplitude(float amp);
-    void setAngle(float angle);
-    void setFrequency(float freq);
+    virtual double renderAudio() = 0;
 
+    void setOffset(double offset);
+    void setAmplitude(double amp);
+    void setAngle(double angle);
 
-    float getOffset() const;
-    float getAmplitude() const;
-    float getAngle() const;
-    float getFrequency() const;
+    double getOffset() const;
+    double getAmplitude() const;
+    double getAngle() const;
 
 private:
 
-    float _phaseOffset {};
-    float _amplitude {};
-    float _angle {};
-    float _frequency {};
+    double _phaseOffset {};
+    double _amplitude {};
+    double _angle {};
 };

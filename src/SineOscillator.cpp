@@ -1,6 +1,6 @@
 #include "SineOscillator.h"
 
-float SineOscillator::renderAudio()
+double SineOscillator::renderAudio()
 {
     auto sample {getAmplitude() * sin(getAngle())};
     setAngle(getAngle() + getOffset());

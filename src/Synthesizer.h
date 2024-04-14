@@ -1,7 +1,8 @@
 #include "WavFileManager.h"
 #include "SineOscillator.h"
-#include <map>
+#include <numbers>
 #include <vector>
+
 
 class Synthesizer : public WavFileManager
 {
@@ -10,7 +11,7 @@ public:
     Synthesizer(int sampleRate, int bitDepth);
     std::ofstream createAudioFile();
     void initializeTempo();
-    void getNotesFromUser();
+    void getInputFromUser();
     size_t calculateNoteLength(int noteType);
     float calculateFrequency(char note, int octave);
     void writeNotesFromUser(std::ofstream& file);

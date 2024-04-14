@@ -8,16 +8,14 @@ int main()
     TestResult tr;
     TestRegistry::runAllTests(tr);
 
-    Synthesizer synth(48000, 16);
+    /*Synthesizer synth(48000, 16);
 
-    synth.initializeTempo();
-
-    synth.getNotesFromUser();
+    synth.getInputFromUser();
 
     std::ofstream audioFile {synth.createAudioFile()};
 
     synth.writeNotesFromUser(audioFile);
 
-    synth.finalizeFile(audioFile);
+    synth.finalizeFile(audioFile);*/
 
 }

@@ -8,7 +8,20 @@ Synthesizer::Synthesizer(int sampleRate, int bitDepth) : _sampleRate(sampleRate)
 void Synthesizer::initializeTempo()
 {
     std::cout << "Please enter your tempo: \n";
-    std::cin >> _tempo;
+    int input {};
+
+    std::cin >> input;
+
+    if (input < 20 || input > 200)
+    {
+        std::cout << "Please enter a tempo between 20 & 200.\n";
+        initializeTempo();
+    }
+    else
+    {
+        _tempo = input;
+    }
+
 }
 
 
@@ -35,10 +48,13 @@ std::ofstream Synthesizer::createAudioFile()
     return audioFile;
 }
 
-void Synthesizer::getNotesFromUser()
+void Synthesizer::getInputFromUser()
 {
-    std::cout << "Welcome to the command line synthesizer.\n"
-              << "Please enter your musical passage using the following notation:\n"
+    std::cout << "Welcome to the command line synthesizer.\n";
+
+    initializeTempo();
+
+    std::cout << "Please enter your musical passage using the following notation:\n"
               << "(note) (return) (rhythmic unit) (return) (note) (return) (rhythmic unit) (return)... etc\n"
               << "Please enter your note as any character A through G\n"
               << "To change your octave, press o\n"
@@ -106,7 +122,7 @@ void Synthesizer::writeNotesFromUser(std::ofstream& file)
 
     for (auto& value : userInput)
     {
-        osc.setFrequency(value.first);
+        osc.setOffset(2 * std::numbers::pi * value.first / _sampleRate);
 
         for (size_t i {0}; i < value.second; ++i)
         {

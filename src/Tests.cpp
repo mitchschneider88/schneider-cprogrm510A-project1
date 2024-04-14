@@ -139,3 +139,14 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL('-', buffer.at(43));
 
 };
+
+TEST(AudioFileCreation, Synthesizer)
+{
+    Synthesizer synth (48000, 16);
+
+    auto audioFile {synth.createAudioFile()};
+
+    CHECK(audioFile.is_open());
+
+}
+

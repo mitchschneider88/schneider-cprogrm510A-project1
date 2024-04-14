@@ -3,5 +3,5 @@
 class SineOscillator : public Oscillator
 {
 public:
-    float renderAudio() override;
+    double renderAudio() override;
 };
