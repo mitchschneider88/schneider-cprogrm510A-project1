@@ -2,26 +2,28 @@
 
 Synthesizer::Synthesizer(int sampleRate, int bitDepth) : _sampleRate(sampleRate), _bitDepth(bitDepth)
 {
-
+    _maxAmplitude = {pow(2, _bitDepth - 1) - 1};
 }
 
 void Synthesizer::initializeTempo()
 {
     std::cout << "Please enter your tempo: \n";
     int input {};
-
     std::cin >> input;
 
-    if (input < 20 || input > 200)
+    while(true)
     {
-        std::cout << "Please enter a tempo between 20 & 200.\n";
-        initializeTempo();
+        if (input < 20 || input > 200)
+        {
+            std::cout << "Please enter a tempo between 20 & 200.\n";
+            std::cin >> input;
+        }
+        else
+        {
+            _tempo = input;
+            break;
+        }
     }
-    else
-    {
-        _tempo = input;
-    }
-
 }
 
 
@@ -50,85 +52,197 @@ std::ofstream Synthesizer::createAudioFile()
 
 void Synthesizer::getInputFromUser()
 {
-    std::cout << "Welcome to the command line synthesizer.\n";
+    std::cout << "\nWelcome to the command line synthesizer.\n";
 
     initializeTempo();
 
-    std::cout << "Please enter your musical passage using the following notation:\n"
-              << "(note) (return) (rhythmic unit) (return) (note) (return) (rhythmic unit) (return)... etc\n"
-              << "Please enter your note as any character A through G\n"
-              << "To change your octave, press o\n"
+    std::cout << "\nPlease enter your musical passage using the following notation:\n"
+              << "(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc\n"
+              << "Please enter your note(s) as any character a through g\n"
+              << "To change your octave, press o. The default octave is 4.\n"
               << "Please enter your rhythmic unit as an integer, corresponding the following definitions:\n"
               << "1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note "
               << "3 = eighth note triplet.\n"
-              << "Press x to stop inputting notes and generate your audio file.\n";
+              << "Press x to stop inputting notes and generate your audio file.\n\n";
 
     while (true)
     {
-        int counter {};
+        std::string rawInput {};
+        int rawRhythmInput {};
 
-        char rawInput {};
+        std::pair<std::vector<float>, unsigned int> temp;
 
-        float frequencyInput {};
-        size_t lengthInput {};
-
+        std::cout << "Enter note(s): \n";
         std::cin >> rawInput;
 
-        if (rawInput == 'x' || rawInput == 'X')
+        if (std::tolower(rawInput.at(0)) == 'x' && rawInput.length() == 1)
         {
             break;
         }
 
-/*       if (rawInput == o)
+        if (std::tolower(rawInput.at(0)) == 'o' && rawInput.length() == 1)
         {
-
+            updateOctave();
+            continue;
         }
-*/
 
-        else if (counter % 2)
+        temp.first = parseNoteInput(rawInput);
+
+        std::cout << "Enter rhythm: \n";
+        std::cin >> rawRhythmInput;
+
+        temp.second = parseRhythmInput(rawRhythmInput);
+
+        _userInput.emplace_back(temp);
+
+    };
+}
+
+std::vector<float> Synthesizer::parseNoteInput(const std::string& input) // fix error handling
+{
+    std::vector<float> frequencies;
+    std::string temp {input};
+
+    while(true)
+    {
+        bool invalidNote {false};
+
+        for (auto& note : temp)
         {
-            if (rawInput == 'a' || rawInput == 'A') // add all cases
+            char formattedNote = std::tolower(note);
+
+            if (formattedNote < 'a' || formattedNote > 'g')
             {
-                frequencyInput = calculateFrequency(rawInput, 1); // un hard code this
+                invalidNote = true;
+                break;
             }
+
+            frequencies.emplace_back(calculateFrequency(note));
+        }
+
+        if (!invalidNote)
+        {
+            break;
         }
 
         else
         {
-            if (rawInput == 1 || rawInput == 2 || rawInput == 4 || rawInput == 8 || rawInput == 16 || rawInput == 3)
-            {
-                lengthInput = calculateNoteLength(rawInput);
-            }
+            std::cout << "Your input included an invalid note. Please only use the following notes: a b c d e f g\n";
+            temp.clear();
+            std::cin >> temp;
         }
+    }
 
-        userInput.emplace_back(frequencyInput, lengthInput);
-        ++counter;
-    };
+    return frequencies;
 }
 
-float Synthesizer::calculateFrequency(char note, int octave)
+unsigned int Synthesizer::parseRhythmInput(const int input)
 {
-    // convert note & octave to ms based on tempo
+    auto temp {input};
+
+    while (true)
+    {
+        if (temp == 1 || temp == 2 || temp == 4 || temp == 8 || temp == 16 || temp == 3)
+        {
+            return calculateNoteLength(temp);
+        }
+        else
+        {
+            std::cout << "Please enter a valid rhythmic unit (1 = whole, 2 = half, 4 = quarter, 8 = eighth, 16 = sixteenth, 3 = triplet\n";
+            std::cin >> temp;
+        }
+    }
+
 }
 
-size_t Synthesizer::calculateNoteLength(int noteType)
+float Synthesizer::calculateFrequency(const char note)
 {
-    // convert noteType to ms based on tempo
+    float freq {};
+
+    switch (note)
+    {
+        case 'a':
+            freq = 27.50f; // A4 (concert pitch)
+            break;
+        case 'b':
+            freq = 30.867f; // B4
+            break;
+        case 'c':
+            freq = 32.7037f; // C4
+            break;
+        case 'd':
+            freq = 36.708f; // D4
+            break;
+        case 'e':
+            freq = 41.203f; // E4
+            break;
+        case 'f':
+            freq = 43.653f; // F4
+            break;
+        case 'g':
+            freq = 48.999f; // G4
+            break;
+        default:
+            freq = 0;
+    }
+
+
+    freq *= std::pow(2.0f, _octave);
+    return freq;
+}
+
+unsigned int Synthesizer::calculateNoteLength(int noteType)
+{
+    float wholeNoteDuration = 240000.0f / _tempo;
+
+    unsigned int durationInMs = std::round(wholeNoteDuration / noteType);
+
+    unsigned int durationInSamples = (durationInMs * _sampleRate) / 1000;
+
+    return durationInSamples;
+}
+
+void Synthesizer::updateOctave()
+{
+    unsigned int temp;
+    std::cout << "Please enter an octave between 0 - 8\n";
+
+    while (true)
+    {
+        std::cin >> temp;
+        if (temp >= 0 && temp <= 8)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter an octave between 0 - 8\n";
+        }
+    }
+
+    _octave = temp;
 }
 
 void Synthesizer::writeNotesFromUser(std::ofstream& file)
 {
-    auto maxAmplitude {pow(2, _bitDepth - 1) - 1};
-
-    for (auto& value : userInput)
+    for (auto& pair : _userInput)
     {
-        osc.setOffset(2 * std::numbers::pi * value.first / _sampleRate);
+        std::vector<int> summedSamples(pair.second, 0);
 
-        for (size_t i {0}; i < value.second; ++i)
+        for (const auto& note : pair.first)
         {
-            auto sample {osc.renderAudio()};
-            int intSample = static_cast<int>(sample * maxAmplitude);
-            writeAsBytes(file, intSample, 2);
+            _osc.setOffset(2 * std::numbers::pi * note / _sampleRate);
+
+            for (size_t i {0}; i < pair.second; ++i)
+            {
+                auto sample {_osc.renderAudio()};
+                summedSamples.at(i) += static_cast<int>(sample * (_maxAmplitude / pair.first.size())); // scaling output in order to not clip
+            }
+        }
+
+        for (size_t i {0}; i < pair.second; ++i)
+        {
+            writeAsBytes(file, summedSamples.at(i), 2);
         }
     }
 

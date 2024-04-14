@@ -19,6 +19,6 @@ public:
 private:
 
     double _phaseOffset {};
-    double _amplitude {};
+    double _amplitude {0.5};
     double _angle {};
 };
