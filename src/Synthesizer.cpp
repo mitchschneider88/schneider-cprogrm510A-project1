@@ -5,51 +5,6 @@ Synthesizer::Synthesizer(int sampleRate, int bitDepth) : _sampleRate(sampleRate)
     _maxAmplitude = {pow(2, _bitDepth - 1) - 1};
 }
 
-void Synthesizer::initializeTempo()
-{
-    std::cout << "Please enter your tempo: \n";
-    int input {};
-    std::cin >> input;
-
-    while(true)
-    {
-        if (input < 20 || input > 200)
-        {
-            std::cout << "Please enter a tempo between 20 & 200.\n";
-            std::cin >> input;
-        }
-        else
-        {
-            _tempo = input;
-            break;
-        }
-    }
-}
-
-
-std::ofstream Synthesizer::createAudioFile()
-{
-    setWavHeaderBitDepth(_bitDepth);
-    setWavHeaderSampleRate(_sampleRate);
-    
-    std::cout << "Enter the name for your audio file: \n";
-
-    std::string name;
-
-    std::cin >> name;
-
-    std::ofstream audioFile;
-
-    audioFile.open(name + ".wav", std::ios::binary);
-
-    if (audioFile.is_open())
-    {
-        prepareFile(audioFile);
-    }
-
-    return audioFile;
-}
-
 void Synthesizer::getInputFromUser()
 {
     std::cout << "\nWelcome to the command line synthesizer.\n";
@@ -72,7 +27,7 @@ void Synthesizer::getInputFromUser()
 
         std::pair<std::vector<float>, unsigned int> temp;
 
-        std::cout << "Enter note(s): \n";
+        std::cout << "Enter note(s):\n";
         std::cin >> rawInput;
 
         if (std::tolower(rawInput.at(0)) == 'x' && rawInput.length() == 1)
@@ -94,7 +49,6 @@ void Synthesizer::getInputFromUser()
         temp.second = parseRhythmInput(rawRhythmInput);
 
         _userInput.emplace_back(temp);
-
     };
 }
 
@@ -107,28 +61,29 @@ std::vector<float> Synthesizer::parseNoteInput(const std::string& input) // fix 
     {
         bool invalidNote {false};
 
-        for (auto& note : temp)
+        for (auto& note : temp) // validity check
         {
             char formattedNote = std::tolower(note);
 
-            if (formattedNote < 'a' || formattedNote > 'g')
+            if (!isValidNoteInput(formattedNote))
             {
                 invalidNote = true;
                 break;
             }
-
-            frequencies.emplace_back(calculateFrequency(note));
         }
 
         if (!invalidNote)
         {
+            for (auto& note : temp) {
+                frequencies.emplace_back(calculateFrequency(note));
+            }
             break;
         }
 
         else
         {
-            std::cout << "Your input included an invalid note. Please only use the following notes: a b c d e f g\n";
-            temp.clear();
+            std::cout << "Your input included an invalid note. Please enter one of the following notes: a b c d e f g\n";
+            resetInputBuffer();
             std::cin >> temp;
         }
     }
@@ -136,26 +91,24 @@ std::vector<float> Synthesizer::parseNoteInput(const std::string& input) // fix 
     return frequencies;
 }
 
-unsigned int Synthesizer::parseRhythmInput(const int input)
+unsigned int Synthesizer::parseRhythmInput(int input)
 {
-    auto temp {input};
-
     while (true)
     {
-        if (temp == 1 || temp == 2 || temp == 4 || temp == 8 || temp == 16 || temp == 3)
+        if (isValidRhythmInput(input))
         {
-            return calculateNoteLength(temp);
+            return calculateNoteLength(input);
         }
         else
         {
             std::cout << "Please enter a valid rhythmic unit (1 = whole, 2 = half, 4 = quarter, 8 = eighth, 16 = sixteenth, 3 = triplet\n";
-            std::cin >> temp;
+            resetInputBuffer();
+            std::cin >> input;
         }
     }
-
 }
 
-float Synthesizer::calculateFrequency(const char note)
+float Synthesizer::calculateFrequency(char note)
 {
     float freq {};
 
@@ -210,6 +163,7 @@ void Synthesizer::updateOctave()
     while (true)
     {
         std::cin >> temp;
+
         if (temp >= 0 && temp <= 8)
         {
             break;
@@ -217,10 +171,33 @@ void Synthesizer::updateOctave()
         else
         {
             std::cout << "Invalid input. Please enter an octave between 0 - 8\n";
+            resetInputBuffer();
         }
     }
 
     _octave = temp;
+}
+
+void Synthesizer::initializeTempo()
+{
+    int input {};
+    std::cout << "Please enter your tempo:\n";
+
+    while (true)
+    {
+        std::cin >> input;
+
+        if (input >= 20 && input <= 200)
+        {
+            _tempo = input;
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a tempo between 20 & 200.\n";
+            resetInputBuffer();
+        }
+    }
 }
 
 void Synthesizer::writeNotesFromUser(std::ofstream& file)
@@ -242,9 +219,61 @@ void Synthesizer::writeNotesFromUser(std::ofstream& file)
 
         for (size_t i {0}; i < pair.second; ++i)
         {
-            writeAsBytes(file, summedSamples.at(i), 2);
+            fileManager.writeAsBytes(file, summedSamples.at(i), 2);
         }
     }
 
-    setPostAudioPosition(file);
+    fileManager.setPostAudioPosition(file);
+    fileManager.finalizeFile(file);
+}
+
+std::ofstream Synthesizer::createAudioFile()
+{
+    fileManager.setWavHeaderBitDepth(_bitDepth);
+    fileManager.setWavHeaderSampleRate(_sampleRate);
+
+    std::cout << "Enter the name for your audio file: \n";
+
+    std::string name;
+
+    std::cin >> name;
+
+    std::ofstream audioFile;
+
+    audioFile.open(name + ".wav", std::ios::binary);
+
+    if (audioFile.is_open())
+    {
+        fileManager.prepareFile(audioFile);
+    }
+
+    return audioFile;
+}
+
+std::vector<std::pair<std::vector<float>, unsigned int>> getUserData(Synthesizer s)
+{
+    return s._userInput;
+}
+
+unsigned int Synthesizer::getTempo()
+{
+    return _tempo;
+}
+
+void resetInputBuffer()
+{
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+bool isValidNoteInput(char note)
+{
+    const std::vector<char> validNotes {'a', 'b', 'c', 'd', 'e', 'f', 'g'};
+    return std::find(validNotes.begin(), validNotes.end(), note) != validNotes.end();
+}
+
+bool isValidRhythmInput(int rhythm)
+{
+    const std::vector<int> validRhythms {1, 2, 4, 8, 16, 3};
+    return std::find(validRhythms.begin(), validRhythms.end(), rhythm) != validRhythms.end();
 }

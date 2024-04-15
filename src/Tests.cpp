@@ -94,7 +94,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL(sampleRate, wavHeaderSampleRate);
 
     /* little endian reconstruction of the byte rate stored in 4 bytes, as specified by
-    the canonical wav file format */
+    the canonical wav file format*/
     int byteRate = 0;
     for (int i = 31; i >= 28; --i)
     {
@@ -105,7 +105,7 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL((sampleRate * numChannels * (subchunk1Size/8)), byteRate);
 
     /* little endian reconstruction of the block align stored in 2 bytes, as specified by
-    the canonical wav file format */
+    the canonical wav file format*/
     int blockAlign = 0;
     for (int i = 33; i >= 32; --i)
     {
@@ -144,9 +144,54 @@ TEST(AudioFileCreation, Synthesizer)
 {
     Synthesizer synth (48000, 16);
 
+    std::istringstream input_stream("test");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
     auto audioFile {synth.createAudioFile()};
 
+    std::cin.rdbuf(orig_cin);
+
     CHECK(audioFile.is_open());
+}
+
+TEST(ParseInput, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::istringstream input_stream("120\na\n4\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    auto result = getUserData(synth);
+
+    CHECK_EQUAL(120, synth.getTempo());
+    CHECK_EQUAL(synth.calculateFrequency('a'), result.at(0).first.at(0));
+    CHECK_EQUAL(synth.calculateNoteLength(4), result.at(0).second);
 
 }
 
+TEST(HandleInvalidTempo, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\nInvalid input. Please enter a tempo between 20 & 200.\n\nPlease enter your musical passage using the following notation:\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4.\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note 3 = eighth note triplet.\nPress x to stop inputting notes and generate your audio file.\n\nEnter note(s):\n"};
+
+    std::istringstream input_stream("0\n120\nx\n");
+    std::ostringstream output_stream;
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+    std::streambuf* orig_cout = std::cout.rdbuf(output_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+    std::cout.rdbuf(orig_cout);
+
+    CHECK_EQUAL(expectedPhrase, output_stream.str());
+    CHECK_EQUAL(120, synth.getTempo());
+}
