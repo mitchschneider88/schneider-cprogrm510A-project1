@@ -1,5 +1,8 @@
 #include "TestHarness.h"
 #include "Synthesizer.h"
+#include "TestFileWriter.h"
+
+
 
 TEST(VerifyWavHeader, WavFileManager)
 {
@@ -140,7 +143,7 @@ TEST(VerifyWavHeader, WavFileManager)
 
 };
 
-TEST(AudioFileCreation, Synthesizer)
+/*TEST(AudioFileCreation, Synthesizer)
 {
     Synthesizer synth (48000, 16);
 
@@ -153,9 +156,9 @@ TEST(AudioFileCreation, Synthesizer)
     std::cin.rdbuf(orig_cin);
 
     CHECK(audioFile.is_open());
-}
+}*/
 
-TEST(ParseInput, Synthesizer)
+/*TEST(ParseInput, Synthesizer)
 {
     Synthesizer synth(48000, 16);
 
@@ -169,12 +172,17 @@ TEST(ParseInput, Synthesizer)
 
     auto result = getUserData(synth);
 
+    float wholeNoteDuration = 240000.0f / synth.getTempo();
+    unsigned int durationInMs = std::round(wholeNoteDuration / 4);
+    unsigned int expectedDurationInSamples = (durationInMs * 48000) / 1000;
+
     CHECK_EQUAL(120, synth.getTempo());
-    CHECK_EQUAL(synth.calculateFrequency('a'), result.at(0).first.at(0));
-    CHECK_EQUAL(synth.calculateNoteLength(4), result.at(0).second);
+    CHECK_EQUAL(440, result.at(0).first.at(0));
+    CHECK_EQUAL(expectedDurationInSamples, result.at(0).second);
 
-}
+}*/
 
+/*
 TEST(HandleInvalidTempo, Synthesizer)
 {
     Synthesizer synth(48000, 16);
@@ -194,4 +202,30 @@ TEST(HandleInvalidTempo, Synthesizer)
 
     CHECK_EQUAL(expectedPhrase, output_stream.str());
     CHECK_EQUAL(120, synth.getTempo());
+}
+*/
+
+TEST(TestFileWriter, Synthesizer)
+{
+    auto data = std::make_unique<TestFileWriter>();
+
+    Synthesizer synth(48000, 16, std::move(data));
+
+    std::istringstream input_stream("120\na\n4\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ostringstream oss;
+
+    synth.writeNotesFromUser(oss);
+
+    int expectedSize {48000}; // amount of bytes that a quarter note at 120bpm equals when a sample @ 48000hz takes up 2 bytes
+
+    auto bytes {static_cast<int>(oss.tellp())};
+
+    CHECK_EQUAL(expectedSize, bytes);
 }

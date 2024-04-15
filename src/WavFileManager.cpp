@@ -22,7 +22,7 @@ void WavFileManager::prepareFile(std::ofstream& file)
     setPreAudioPosition(file);
 }
 
-void WavFileManager::writeAsBytes(std::ofstream& file, int value, int byteSize)
+void WavFileManager::writeAsBytes(std::ostream& file, int value, int byteSize)
 {
     file.write(reinterpret_cast<const char*>(&value), byteSize);
 }
@@ -38,7 +38,7 @@ void WavFileManager::finalizeFile(std::ofstream& file)
     writeAsBytes(file, _postAudioPosition - 8, 4); 
     // this is writing size of header file, which is the size of the file minus 8 bytes to store ID and size of header file
 
-    file.close();
+    //file.close();
 }
 
 void WavFileManager::setWavHeaderSampleRate(int sr)
@@ -57,12 +57,12 @@ void WavFileManager::setWavHeaderBitDepth(int bd)
     _wavHeader.bitDepth = bd;
 }
 
-void WavFileManager::setPreAudioPosition(std::ofstream& file)
+void WavFileManager::setPreAudioPosition(std::ostream& file)
 {
     _preAudioPosition = {static_cast<int>(file.tellp())};
 }
 
-void WavFileManager::setPostAudioPosition(std::ofstream& file)
+void WavFileManager::setPostAudioPosition(std::ostream& file)
 {
     _postAudioPosition = {static_cast<int>(file.tellp())};
 }

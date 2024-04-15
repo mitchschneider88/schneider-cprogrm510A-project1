@@ -8,12 +8,13 @@ int main()
     TestResult tr;
     TestRegistry::runAllTests(tr);
 
-    /*Synthesizer synth(48000, 16);
+/*    Synthesizer synth(48000, 16,std::make_unique<SynthFileWriter>());
 
     synth.getInputFromUser();
 
     std::ofstream audioFile {synth.createAudioFile()};
 
-    synth.writeNotesFromUser(audioFile);*/
+    synth.writeNotesFromUser(audioFile);
+    synth.finalizeFile(audioFile);*/
 
 }

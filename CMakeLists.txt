@@ -26,7 +26,13 @@ set(SOURCE_FILES
         src/Oscillator.cpp
         src/Oscillator.h
         src/SineOscillator.cpp
-        src/SineOscillator.h)
+        src/SineOscillator.h
+        src/FileWriter.h
+        src/SynthFileWriter.cpp
+        src/SynthFileWriter.h
+        src/TestFileWriter.cpp
+        src/TestFileWriter.h
+)
 
 add_executable(${PROJECT_NAME}.exe ${SOURCE_FILES})
 

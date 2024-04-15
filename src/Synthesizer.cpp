@@ -1,8 +1,10 @@
 #include "Synthesizer.h"
 
-Synthesizer::Synthesizer(int sampleRate, int bitDepth) : _sampleRate(sampleRate), _bitDepth(bitDepth)
+Synthesizer::Synthesizer(int sampleRate, int bitDepth, std::unique_ptr<FileWriter> writer)
+: _sampleRate(sampleRate), _bitDepth(bitDepth), _writer(std::move(writer))
 {
     _maxAmplitude = {pow(2, _bitDepth - 1) - 1};
+    _osc.setAmplitude(0.5);
 }
 
 void Synthesizer::getInputFromUser()
@@ -200,7 +202,7 @@ void Synthesizer::initializeTempo()
     }
 }
 
-void Synthesizer::writeNotesFromUser(std::ofstream& file)
+void Synthesizer::writeNotesFromUser(std::ostream& file)
 {
     for (auto& pair : _userInput)
     {
@@ -219,18 +221,23 @@ void Synthesizer::writeNotesFromUser(std::ofstream& file)
 
         for (size_t i {0}; i < pair.second; ++i)
         {
-            fileManager.writeAsBytes(file, summedSamples.at(i), 2);
+            _writer->write(file, summedSamples.at(i), 2);
         }
     }
 
-    fileManager.setPostAudioPosition(file);
-    fileManager.finalizeFile(file);
+    _fileManager.setPostAudioPosition(file);
+
+}
+
+void Synthesizer::finalizeFile(std::ofstream &file)
+{
+    _fileManager.finalizeFile(file);
 }
 
 std::ofstream Synthesizer::createAudioFile()
 {
-    fileManager.setWavHeaderBitDepth(_bitDepth);
-    fileManager.setWavHeaderSampleRate(_sampleRate);
+    _fileManager.setWavHeaderBitDepth(_bitDepth);
+    _fileManager.setWavHeaderSampleRate(_sampleRate);
 
     std::cout << "Enter the name for your audio file: \n";
 
@@ -244,15 +251,10 @@ std::ofstream Synthesizer::createAudioFile()
 
     if (audioFile.is_open())
     {
-        fileManager.prepareFile(audioFile);
+        _fileManager.prepareFile(audioFile);
     }
 
     return audioFile;
-}
-
-std::vector<std::pair<std::vector<float>, unsigned int>> getUserData(Synthesizer s)
-{
-    return s._userInput;
 }
 
 unsigned int Synthesizer::getTempo()
