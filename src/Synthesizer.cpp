@@ -1,7 +1,7 @@
 #include "Synthesizer.h"
 
-Synthesizer::Synthesizer(int sampleRate, int bitDepth, std::unique_ptr<FileWriter> writer)
-: _sampleRate(sampleRate), _bitDepth(bitDepth), _writer(std::move(writer))
+Synthesizer::Synthesizer(int sampleRate, int bitDepth)
+: _sampleRate(sampleRate), _bitDepth(bitDepth)
 {
     _maxAmplitude = {pow(2, _bitDepth - 1) - 1};
     _osc.setAmplitude(0.5);
@@ -117,25 +117,25 @@ float Synthesizer::calculateFrequency(char note)
     switch (note)
     {
         case 'a':
-            freq = 27.50f; // A4 (concert pitch)
+            freq = 27.50f; // A0
             break;
         case 'b':
-            freq = 30.867f; // B4
+            freq = 30.867f; // B0
             break;
         case 'c':
-            freq = 32.7037f; // C4
+            freq = 32.7037f; // C0
             break;
         case 'd':
-            freq = 36.708f; // D4
+            freq = 36.708f; // D0
             break;
         case 'e':
-            freq = 41.203f; // E4
+            freq = 41.203f; // E0
             break;
         case 'f':
-            freq = 43.653f; // F4
+            freq = 43.653f; // F0
             break;
         case 'g':
-            freq = 48.999f; // G4
+            freq = 48.999f; // G0
             break;
         default:
             freq = 0;
@@ -221,17 +221,10 @@ void Synthesizer::writeNotesFromUser(std::ostream& file)
 
         for (size_t i {0}; i < pair.second; ++i)
         {
-            _writer->write(file, summedSamples.at(i), 2);
+           _fileManager.writeAsBytes(file, summedSamples.at(i), 2);
         }
     }
 
-    _fileManager.setPostAudioPosition(file);
-
-}
-
-void Synthesizer::finalizeFile(std::ofstream &file)
-{
-    _fileManager.finalizeFile(file);
 }
 
 std::ofstream Synthesizer::createAudioFile()
@@ -251,10 +244,20 @@ std::ofstream Synthesizer::createAudioFile()
 
     if (audioFile.is_open())
     {
-        _fileManager.prepareFile(audioFile);
+        prepareFile(audioFile);
     }
 
     return audioFile;
+}
+
+void Synthesizer::prepareFile(std::ostream& file)
+{
+    _fileManager.prepareFile(file);
+}
+
+void Synthesizer::finalizeFile(std::ostream &file)
+{
+    _fileManager.finalizeFile(file);
 }
 
 unsigned int Synthesizer::getTempo()

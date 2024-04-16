@@ -19,5 +19,5 @@ typedef struct WavHeader
     // at any given point in time, needs to be one sample of audio of all channels available to playback device
     int bitDepth {}; // Number of bits per sample - 2 bytes
     const std::string subchunk2ID {"data"}; // "data" string - 4 bytes
-    const std::string subchunk2Size {"----"};  // Sampled data length - 4 bytes  
+    const std::string subchunk2Size {"----"};  // Sampled data length - 4 bytes
 } WavHeader;

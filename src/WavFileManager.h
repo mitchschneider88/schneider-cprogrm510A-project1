@@ -4,9 +4,9 @@
 class WavFileManager
 {
 public:
-    void prepareFile(std::ofstream &file); // write wav header to file
+    void prepareFile(std::ostream &file); // write wav header to file
     static void writeAsBytes(std::ostream &file, int value, int byteSize); // use to write wav header and audio data to file with reinterpretcast<char*>
-    void finalizeFile(std::ofstream& file);
+    void finalizeFile(std::ostream& file);
 
     void setWavHeaderSampleRate(int sr);
     void setWavHeaderBitDepth(int bd);

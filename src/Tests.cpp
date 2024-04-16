@@ -1,8 +1,5 @@
 #include "TestHarness.h"
 #include "Synthesizer.h"
-#include "TestFileWriter.h"
-
-
 
 TEST(VerifyWavHeader, WavFileManager)
 {
@@ -16,14 +13,14 @@ TEST(VerifyWavHeader, WavFileManager)
 
     std::ofstream file;
 
-    file.open("test.wav", std::ios::binary);
+    file.open("wavheadertest.wav", std::ios::binary);
 
     if (file.is_open())
     {
         fileManager.prepareFile(file);
     }
 
-    std::ifstream testFile ("test.wav");
+    std::ifstream testFile ("wavheadertest.wav");
 
     std::vector<char> buffer(44);
     testFile.read(buffer.data(), 44);
@@ -141,9 +138,11 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL('-', buffer.at(42));
     CHECK_EQUAL('-', buffer.at(43));
 
+    std::remove("wavheadertest.wav");
+
 };
 
-/*TEST(AudioFileCreation, Synthesizer)
+TEST(AudioFileCreation, Synthesizer)
 {
     Synthesizer synth (48000, 16);
 
@@ -156,11 +155,30 @@ TEST(VerifyWavHeader, WavFileManager)
     std::cin.rdbuf(orig_cin);
 
     CHECK(audioFile.is_open());
-}*/
 
-/*TEST(ParseInput, Synthesizer)
+    std::remove("test.wav");
+}
+
+TEST(SetTempo, Synthesizer)
 {
     Synthesizer synth(48000, 16);
+
+    std::istringstream input_stream("120\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    CHECK_EQUAL(120, synth.getTempo());
+
+}
+
+TEST(CreatesCorectNumberOfSamples, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+    WavFileManager fileManager;
 
     std::istringstream input_stream("120\na\n4\nx\n");
 
@@ -170,24 +188,31 @@ TEST(VerifyWavHeader, WavFileManager)
 
     std::cin.rdbuf(orig_cin);
 
-    auto result = getUserData(synth);
+    std::ostringstream notes;
 
-    float wholeNoteDuration = 240000.0f / synth.getTempo();
-    unsigned int durationInMs = std::round(wholeNoteDuration / 4);
-    unsigned int expectedDurationInSamples = (durationInMs * 48000) / 1000;
+    fileManager.prepareFile(notes);
+    synth.writeNotesFromUser(notes);
 
-    CHECK_EQUAL(120, synth.getTempo());
-    CHECK_EQUAL(440, result.at(0).first.at(0));
-    CHECK_EQUAL(expectedDurationInSamples, result.at(0).second);
+    int expectedSize {48044}; // amount of bytes that a quarter note at 120bpm equals, when each sample @ 48000hz takes up 2 bytes + the .wav header
 
-}*/
+    auto bytes {static_cast<int>(notes.tellp())};
 
-/*
+    CHECK_EQUAL(expectedSize, bytes);
+}
+
+
 TEST(HandleInvalidTempo, Synthesizer)
 {
     Synthesizer synth(48000, 16);
 
-    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\nInvalid input. Please enter a tempo between 20 & 200.\n\nPlease enter your musical passage using the following notation:\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4.\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note 3 = eighth note triplet.\nPress x to stop inputting notes and generate your audio file.\n\nEnter note(s):\n"};
+    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:"
+                                "\nInvalid input. Please enter a tempo between 20 & 200.\n"
+                                "\nPlease enter your musical passage using the following notation:"
+                                "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
+                                "\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4."
+                                "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note 3 = eighth note triplet."
+                                "\nPress x to stop inputting notes and generate your audio file.\n\nEnter note(s):\n"};
 
     std::istringstream input_stream("0\n120\nx\n");
     std::ostringstream output_stream;
@@ -203,29 +228,140 @@ TEST(HandleInvalidTempo, Synthesizer)
     CHECK_EQUAL(expectedPhrase, output_stream.str());
     CHECK_EQUAL(120, synth.getTempo());
 }
-*/
 
-TEST(TestFileWriter, Synthesizer)
+TEST(CreatesCorrectPitch, Synthesizer) // this won't write the new files size for some reason
 {
-    auto data = std::make_unique<TestFileWriter>();
+    Synthesizer synth(48000, 16);
 
-    Synthesizer synth(48000, 16, std::move(data));
-
-    std::istringstream input_stream("120\na\n4\nx\n");
+    std::istringstream input_stream("120\na\n4\nx\nnote\n");
 
     std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
 
     synth.getInputFromUser();
+    std::ofstream newFile {synth.createAudioFile()};
+    synth.writeNotesFromUser(newFile);
+    synth.finalizeFile(newFile);
+
+    newFile.close();
 
     std::cin.rdbuf(orig_cin);
 
-    std::ostringstream oss;
+    std::ifstream testFile ("../../testing/a-48kHz-16bit-120BPM-QuarterNote.wav");
+    CHECK(testFile.is_open());
 
-    synth.writeNotesFromUser(oss);
+    std::ifstream notesFile ("note.wav");
+    CHECK(notesFile.is_open());
 
-    int expectedSize {48000}; // amount of bytes that a quarter note at 120bpm equals when a sample @ 48000hz takes up 2 bytes
+    std::istreambuf_iterator<char> testBegin(testFile);
+    std::istreambuf_iterator<char> notesBegin(notesFile);
+    std::istreambuf_iterator<char> end;
+    std::vector<char> testVec (testBegin, end);
+    std::vector<char> notesVec (notesBegin, end);
 
-    auto bytes {static_cast<int>(oss.tellp())};
+    for (size_t i {0}; i < testVec.size(); ++i)
+    {
+        CHECK_EQUAL(testVec.at(i), notesVec.at(i));
+    }
 
-    CHECK_EQUAL(expectedSize, bytes);
+    std::remove("note.wav");
+
+}
+
+TEST(CreatesCorrectChord, Synthesizer) // this won't write the new files size for some reason
+{
+    Synthesizer synth(48000, 16);
+
+    std::istringstream input_stream("120\nceg\n4\nx\nchord\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+    std::ofstream newFile {synth.createAudioFile()};
+    synth.writeNotesFromUser(newFile);
+    synth.finalizeFile(newFile);
+
+    newFile.close();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ifstream testFile ("../../testing/ceg-48kHz-16bit-120BPM-QuarterNote.wav");
+    CHECK(testFile.is_open());
+
+    std::ifstream notesFile ("chord.wav");
+    CHECK(notesFile.is_open());
+
+    std::istreambuf_iterator<char> testBegin(testFile);
+    std::istreambuf_iterator<char> notesBegin(notesFile);
+    std::istreambuf_iterator<char> end;
+    std::vector<char> testVec (testBegin, end);
+    std::vector<char> notesVec (notesBegin, end);
+
+    for (size_t i {0}; i < testVec.size(); ++i)
+    {
+        CHECK_EQUAL(testVec.at(i), notesVec.at(i));
+    }
+
+    std::remove("chord.wav");
+}
+
+TEST(HandleInvalidNote, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\n"
+                                "\nPlease enter your musical passage using the following notation:"
+                                "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
+                                "\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4."
+                                "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note 3 = eighth note triplet."
+                                "\nPress x to stop inputting notes and generate your audio file.\n"
+                                "\nEnter note(s):\n"
+                                "Your input included an invalid note. Please enter one of the following notes: a b c d e f g\n"
+                                "Enter rhythm: \n"
+                                "Enter note(s):\n"};
+
+    std::istringstream input_stream("120\nhfgjds4i5\na\n4\nx\n");
+    std::ostringstream output_stream;
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+    std::streambuf* orig_cout = std::cout.rdbuf(output_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+    std::cout.rdbuf(orig_cout);
+
+    CHECK_EQUAL(expectedPhrase, output_stream.str());
+
+}
+
+TEST(HandleInvalidRhythm, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\n"
+                                "\nPlease enter your musical passage using the following notation:"
+                                "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
+                                "\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4."
+                                "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note 3 = eighth note triplet."
+                                "\nPress x to stop inputting notes and generate your audio file.\n"
+                                "\nEnter note(s):\n"
+                                "Enter rhythm: \n"
+                                "Please enter a valid rhythmic unit (1 = whole, 2 = half, 4 = quarter, 8 = eighth, 16 = sixteenth, 3 = triplet\n"
+                                "Enter note(s):\n"};
+
+    std::istringstream input_stream("120\na\n89\n4\nx\n");
+    std::ostringstream output_stream;
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+    std::streambuf* orig_cout = std::cout.rdbuf(output_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+    std::cout.rdbuf(orig_cout);
+
+    CHECK_EQUAL(expectedPhrase, output_stream.str());
+
 }

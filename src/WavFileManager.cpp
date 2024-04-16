@@ -1,6 +1,6 @@
 #include "WavFileManager.h"
 
-void WavFileManager::prepareFile(std::ofstream& file)
+void WavFileManager::prepareFile(std::ostream& file)
 {
     file << _wavHeader.chunkID;
     file << _wavHeader.chunkSize;
@@ -27,14 +27,16 @@ void WavFileManager::writeAsBytes(std::ostream& file, int value, int byteSize)
     file.write(reinterpret_cast<const char*>(&value), byteSize);
 }
 
-void WavFileManager::finalizeFile(std::ofstream& file)
+void WavFileManager::finalizeFile(std::ostream& file)
 {
+    setPostAudioPosition(file);
+
     file.seekp(_preAudioPosition - 4); // seeking to empty 4 bytes after subchunk2ID
 
     writeAsBytes(file, _postAudioPosition - _preAudioPosition, 4);
     
     file.seekp(4, std::ios::beg); // seeking to empty 4 bytes after first 4 bytes of the file
-    
+
     writeAsBytes(file, _postAudioPosition - 8, 4); 
     // this is writing size of header file, which is the size of the file minus 8 bytes to store ID and size of header file
 

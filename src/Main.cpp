@@ -8,7 +8,7 @@ int main()
     TestResult tr;
     TestRegistry::runAllTests(tr);
 
-/*    Synthesizer synth(48000, 16,std::make_unique<SynthFileWriter>());
+    /*Synthesizer synth(48000, 16);
 
     synth.getInputFromUser();
 
