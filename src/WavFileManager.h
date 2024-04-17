@@ -4,8 +4,8 @@
 class WavFileManager
 {
 public:
-    void prepareFile(std::ostream &file); // write wav header to file
-    static void writeAsBytes(std::ostream &file, int value, int byteSize); // use to write wav header and audio data to file with reinterpretcast<char*>
+    void prepareFile(std::ostream &file);
+    static void writeAsBytes(std::ostream &file, int value, int byteSize);
     void finalizeFile(std::ostream& file);
 
     void setWavHeaderSampleRate(int sr);
@@ -15,10 +15,9 @@ public:
     void setPreAudioPosition(std::ostream& file);
     void setPostAudioPosition(std::ostream& file);
 
-    WavHeader _wavHeader; // figure out how to make this private?
-
 private:
 
+    WavHeader _wavHeader;
     int _preAudioPosition {};
     int _postAudioPosition {};
 };

@@ -18,8 +18,7 @@ void Synthesizer::getInputFromUser()
               << "Please enter your note(s) as any character a through g\n"
               << "To change your octave, press o. The default octave is 4.\n"
               << "Please enter your rhythmic unit as an integer, corresponding the following definitions:\n"
-              << "1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note "
-              << "3 = eighth note triplet.\n"
+              << "1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
               << "Press x to stop inputting notes and generate your audio file.\n\n";
 
     while (true)
@@ -103,7 +102,7 @@ unsigned int Synthesizer::parseRhythmInput(int input)
         }
         else
         {
-            std::cout << "Please enter a valid rhythmic unit (1 = whole, 2 = half, 4 = quarter, 8 = eighth, 16 = sixteenth, 3 = triplet\n";
+            std::cout << "Please enter a valid rhythmic unit (1 = whole, 2 = half, 4 = quarter, 8 = eighth, 16 = sixteenth\n";
             resetInputBuffer();
             std::cin >> input;
         }
@@ -279,6 +278,6 @@ bool isValidNoteInput(char note)
 
 bool isValidRhythmInput(int rhythm)
 {
-    const std::vector<int> validRhythms {1, 2, 4, 8, 16, 3};
+    const std::vector<int> validRhythms {1, 2, 4, 8, 16};
     return std::find(validRhythms.begin(), validRhythms.end(), rhythm) != validRhythms.end();
 }

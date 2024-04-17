@@ -9,18 +9,23 @@ class Synthesizer
 public:
 
     Synthesizer(int sampleRate, int bitDepth);
-
-    unsigned int getTempo();
-
-    void getInputFromUser();
-    void writeNotesFromUser(std::ostream& file);
+    Synthesizer(const Synthesizer& synth) = default;
+    Synthesizer(Synthesizer&& synth) = default;
+    Synthesizer& operator=(const Synthesizer& other) = default;
+    Synthesizer& operator=(Synthesizer&& other) = default;
+    ~Synthesizer() = default;
 
     void initializeTempo();
     void updateOctave();
 
+    void getInputFromUser();
+    [[nodiscard]] unsigned int getTempo();
+
     std::ofstream createAudioFile();
     void prepareFile(std::ostream& file);
+    void writeNotesFromUser(std::ostream& file);
     void finalizeFile(std::ostream& file);
+
     WavFileManager _fileManager;
 
 private:
@@ -29,7 +34,6 @@ private:
     unsigned int parseRhythmInput(int input);
     float calculateFrequency(char note);
     unsigned int calculateNoteLength(int noteType);
-
 
     SineOscillator _osc;
     std::vector<std::pair<std::vector<float>, unsigned int>> _userInput;

@@ -3,7 +3,11 @@
 class Oscillator
 {
 public:
-    // implement rule of 5
+    Oscillator() = default;
+    Oscillator(const Oscillator& osc) = default;
+    Oscillator(Oscillator&& osc) noexcept = default;
+    Oscillator& operator=(const Oscillator& osc) = default;
+    Oscillator& operator=(Oscillator&& osc) noexcept = default;
     virtual ~Oscillator() = default;
 
     virtual double renderAudio() = 0;
@@ -12,9 +16,9 @@ public:
     void setAmplitude(double amp);
     void setAngle(double angle);
 
-    double getOffset() const;
-    double getAmplitude() const;
-    double getAngle() const;
+    [[nodiscard]] double getOffset() const;
+    [[nodiscard]] double getAmplitude() const;
+    [[nodiscard]] double getAngle() const;
 
 private:
 
