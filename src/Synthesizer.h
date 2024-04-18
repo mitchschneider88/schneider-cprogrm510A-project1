@@ -18,13 +18,16 @@ public:
     void initializeTempo();
     void updateOctave();
 
+    void welcomeUser();
     void getInputFromUser();
-    [[nodiscard]] unsigned int getTempo();
+    [[nodiscard]] unsigned int getTempo() const;
+    [[nodiscard]] unsigned int getOctave() const;
 
     std::ofstream createAudioFile();
     void prepareFile(std::ostream& file);
     void writeNotesFromUser(std::ostream& file);
     void finalizeFile(std::ostream& file);
+
 
     WavFileManager _fileManager;
 
@@ -32,7 +35,7 @@ private:
 
     std::vector<float> parseNoteInput(const std::string& input);
     unsigned int parseRhythmInput(int input);
-    float calculateFrequency(char note);
+    float calculateFrequency(char note, char modifier);
     unsigned int calculateNoteLength(int noteType);
 
     SineOscillator _osc;
@@ -46,5 +49,6 @@ private:
 };
 
 void resetInputBuffer();
-bool isValidRhythmInput(int rhythm);
+static bool isValidRhythmInput(int rhythm);
 static bool isValidNoteInput(char note);
+static bool isValidModifier(char modifier);

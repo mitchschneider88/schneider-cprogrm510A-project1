@@ -7,7 +7,7 @@ public:
     Oscillator(const Oscillator& osc) = default;
     Oscillator(Oscillator&& osc) noexcept = default;
     Oscillator& operator=(const Oscillator& osc) = default;
-    Oscillator& operator=(Oscillator&& osc) noexcept = default;
+    Oscillator& operator=(Oscillator&& osc) = default;
     virtual ~Oscillator() = default;
 
     virtual double renderAudio() = 0;

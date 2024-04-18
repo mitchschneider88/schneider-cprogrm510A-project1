@@ -40,7 +40,6 @@ void WavFileManager::finalizeFile(std::ostream& file)
     writeAsBytes(file, _postAudioPosition - 8, 4); 
     // this is writing size of header file, which is the size of the file minus 8 bytes to store ID and size of header file
 
-    //file.close();
 }
 
 void WavFileManager::setWavHeaderSampleRate(int sr)

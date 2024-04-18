@@ -1,5 +1,7 @@
 set(BINARY ${CMAKE_PROJECT_NAME}_test)
 
+include_directories(../src)
+
 set(TEST_SOURCES
         RunTests.cpp
         Tests.cpp

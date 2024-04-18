@@ -5,7 +5,7 @@ class WavFileManager
 {
 public:
     void prepareFile(std::ostream &file);
-    static void writeAsBytes(std::ostream &file, int value, int byteSize);
+    void writeAsBytes(std::ostream &file, int value, int byteSize);
     void finalizeFile(std::ostream& file);
 
     void setWavHeaderSampleRate(int sr);

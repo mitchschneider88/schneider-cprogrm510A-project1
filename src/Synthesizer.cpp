@@ -9,23 +9,12 @@ Synthesizer::Synthesizer(int sampleRate, int bitDepth)
 
 void Synthesizer::getInputFromUser()
 {
-    std::cout << "\nWelcome to the command line synthesizer.\n";
-
-    initializeTempo();
-
-    std::cout << "\nPlease enter your musical passage using the following notation:\n"
-              << "(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc\n"
-              << "Please enter your note(s) as any character a through g\n"
-              << "To change your octave, press o. The default octave is 4.\n"
-              << "Please enter your rhythmic unit as an integer, corresponding the following definitions:\n"
-              << "1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
-              << "Press x to stop inputting notes and generate your audio file.\n\n";
+    welcomeUser();
 
     while (true)
     {
         std::string rawInput {};
         int rawRhythmInput {};
-
         std::pair<std::vector<float>, unsigned int> temp;
 
         std::cout << "Enter note(s):\n";
@@ -44,7 +33,7 @@ void Synthesizer::getInputFromUser()
 
         temp.first = parseNoteInput(rawInput);
 
-        std::cout << "Enter rhythm: \n";
+        std::cout << "Enter rhythm:\n";
         std::cin >> rawRhythmInput;
 
         temp.second = parseRhythmInput(rawRhythmInput);
@@ -53,39 +42,82 @@ void Synthesizer::getInputFromUser()
     };
 }
 
-std::vector<float> Synthesizer::parseNoteInput(const std::string& input) // fix error handling
+void Synthesizer::welcomeUser()
+{
+    std::cout << "\nWelcome to the command line synthesizer.\n";
+
+    initializeTempo();
+
+    std::cout << "\nPlease enter your musical passage using the following notation:\n"
+              << "(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc\n"
+              << "Please enter your note(s) as any character a through g\n"
+              << "To change your octave, press o. The default octave is 4.\n"
+              << "Please enter your rhythmic unit as an integer, corresponding the following definitions:\n"
+              << "1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
+              << "To raise or lower a note by a half step, use the . symbol to lower and the # symbol to raise\n"
+              << "eg: a. = A Flat, c# = C Sharp\n"
+              << "Press x to stop inputting notes and generate your audio file.\n\n";
+}
+
+std::vector<float> Synthesizer::parseNoteInput(const std::string& input)
 {
     std::vector<float> frequencies;
     std::string temp {input};
+    bool validFrequenciesAdded {false};
 
-    while(true)
+    while(!validFrequenciesAdded)
     {
-        bool invalidNote {false};
+        bool invalidValue {false};
 
-        for (auto& note : temp) // validity check
+        for (auto& value : temp) // validity check
         {
-            char formattedNote = std::tolower(note);
+            char formattedValue = std::tolower(value);
 
-            if (!isValidNoteInput(formattedNote))
+            if (!isValidNoteInput(temp[0]) || (!isValidNoteInput(formattedValue) && !isValidModifier(formattedValue)))
             {
-                invalidNote = true;
+                invalidValue = true;
                 break;
             }
         }
 
-        if (!invalidNote)
+        if (!invalidValue)
         {
-            for (auto& note : temp) {
-                frequencies.emplace_back(calculateFrequency(note));
+            for (size_t i {0}; i < temp.size(); ++i)
+            {
+                char value = std::tolower(temp[i]);
+                char nextValue = (i < temp.size() - 1) ? temp[i + 1] : 'x';
+
+                // Check if the current character is a valid note
+                if (isValidNoteInput(value)) {
+                    // Check if the next character is a valid modifier
+                    if (i < temp.size() - 1 && isValidModifier(nextValue))
+                    {
+                        frequencies.emplace_back(calculateFrequency(value, nextValue));
+                        ++i; // skip the modifier
+                    }
+                    else
+                    {
+                        frequencies.emplace_back(calculateFrequency(value, nextValue));
+                    }
+                }
+                else
+                {
+                    invalidValue = true;
+                    break;
+                }
             }
-            break;
         }
 
-        else
+        if (invalidValue)
         {
-            std::cout << "Your input included an invalid note. Please enter one of the following notes: a b c d e f g\n";
+            std::cout << "Please use only the following notes and modifiers: a b c d e f g . (flat) # (sharp)\n";
             resetInputBuffer();
             std::cin >> temp;
+        }
+
+        if (!invalidValue)
+        {
+            validFrequenciesAdded = true;
         }
     }
 
@@ -109,8 +141,10 @@ unsigned int Synthesizer::parseRhythmInput(int input)
     }
 }
 
-float Synthesizer::calculateFrequency(char note)
+float Synthesizer::calculateFrequency(char note, char modifier)
 {
+    const float semitoneScalar {1.05946f};
+
     float freq {};
 
     switch (note)
@@ -140,6 +174,14 @@ float Synthesizer::calculateFrequency(char note)
             freq = 0;
     }
 
+    if (modifier == '#')
+    {
+        freq *= semitoneScalar;
+    }
+    if (modifier == '.')
+    {
+        freq /= semitoneScalar;
+    }
 
     freq *= std::pow(2.0f, _octave);
     return freq;
@@ -165,7 +207,7 @@ void Synthesizer::updateOctave()
     {
         std::cin >> temp;
 
-        if (temp >= 0 && temp <= 8)
+        if (temp <= 8)
         {
             break;
         }
@@ -259,9 +301,14 @@ void Synthesizer::finalizeFile(std::ostream &file)
     _fileManager.finalizeFile(file);
 }
 
-unsigned int Synthesizer::getTempo()
+unsigned int Synthesizer::getTempo() const
 {
     return _tempo;
+}
+
+unsigned int Synthesizer::getOctave() const
+{
+    return _octave;
 }
 
 void resetInputBuffer()
@@ -274,6 +321,12 @@ bool isValidNoteInput(char note)
 {
     const std::vector<char> validNotes {'a', 'b', 'c', 'd', 'e', 'f', 'g'};
     return std::find(validNotes.begin(), validNotes.end(), note) != validNotes.end();
+}
+
+bool isValidModifier(char modifier)
+{
+    const std::vector<char> validModifiers {'.', '#'};
+    return std::find(validModifiers.begin(), validModifiers.end(), modifier) != validModifiers.end();
 }
 
 bool isValidRhythmInput(int rhythm)

@@ -1,5 +1,5 @@
 #include "TestHarness.h"
-#include "../src/Synthesizer.h"
+#include "Synthesizer.h"
 
 TEST(VerifyWavHeader, WavFileManager)
 {
@@ -139,7 +139,6 @@ TEST(VerifyWavHeader, WavFileManager)
     CHECK_EQUAL('-', buffer.at(43));
 
     std::remove("wavheadertest.wav");
-
 };
 
 TEST(AudioFileCreation, Synthesizer)
@@ -172,7 +171,6 @@ TEST(SetTempo, Synthesizer)
     std::cin.rdbuf(orig_cin);
 
     CHECK_EQUAL(120, synth.getTempo());
-
 }
 
 TEST(CreatesCorectNumberOfSamples, Synthesizer)
@@ -193,7 +191,8 @@ TEST(CreatesCorectNumberOfSamples, Synthesizer)
     fileManager.prepareFile(notes);
     synth.writeNotesFromUser(notes);
 
-    int expectedSize {48044}; // amount of bytes that a quarter note at 120bpm equals, when each sample @ 48000hz takes up 2 bytes + the .wav header
+    int expectedSize {48044};
+    // amount of bytes that a quarter note at 120bpm equals (when each sample @ 48kHz takes up 2 bytes) + the .wav header
 
     auto bytes {static_cast<int>(notes.tellp())};
 
@@ -265,7 +264,7 @@ TEST(CreatesCorrectPitch, Synthesizer)
 
 }
 
-TEST(CreatesCorrectChord, Synthesizer) // this won't write the new files size for some reason
+TEST(CreatesCorrectChord, Synthesizer)
 {
     Synthesizer synth(48000, 16);
 
@@ -309,16 +308,52 @@ TEST(HandleInvalidNote, Synthesizer)
     std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\n"
                                 "\nPlease enter your musical passage using the following notation:"
                                 "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
-                                "\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4."
+                                "\nPlease enter your note(s) as any character a through g\n"
+                                "To change your octave, press o. The default octave is 4."
                                 "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
-                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note"
-                                "\nPress x to stop inputting notes and generate your audio file.\n"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
+                                "To raise or lower a note by a half step, use the . symbol to lower and the # symbol to raise\n"
+                                "eg: a. = A Flat, c# = C Sharp\n"
+                                "Press x to stop inputting notes and generate your audio file.\n"
                                 "\nEnter note(s):\n"
-                                "Your input included an invalid note. Please enter one of the following notes: a b c d e f g\n"
-                                "Enter rhythm: \n"
+                                "Please use only the following notes and modifiers: a b c d e f g . (flat) # (sharp)\n"
+                                "Enter rhythm:\n"
                                 "Enter note(s):\n"};
 
     std::istringstream input_stream("120\nhfgjds4i5\na\n4\nx\n");
+    std::ostringstream output_stream;
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+    std::streambuf* orig_cout = std::cout.rdbuf(output_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+    std::cout.rdbuf(orig_cout);
+
+    CHECK_EQUAL(expectedPhrase, output_stream.str());
+}
+
+TEST(HandleNoNoteOnlyModifier, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\n"
+                                "\nPlease enter your musical passage using the following notation:"
+                                "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
+                                "\nPlease enter your note(s) as any character a through g\n"
+                                "To change your octave, press o. The default octave is 4."
+                                "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
+                                "To raise or lower a note by a half step, use the . symbol to lower and the # symbol to raise\n"
+                                "eg: a. = A Flat, c# = C Sharp\n"
+                                "Press x to stop inputting notes and generate your audio file.\n"
+                                "\nEnter note(s):\n"
+                                "Please use only the following notes and modifiers: a b c d e f g . (flat) # (sharp)\n"
+                                "Enter rhythm:\n"
+                                "Enter note(s):\n"};
+
+    std::istringstream input_stream("120\n.\na#\n4\nx\n");
     std::ostringstream output_stream;
 
     std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
@@ -340,12 +375,15 @@ TEST(HandleInvalidRhythm, Synthesizer)
     std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\n"
                                 "\nPlease enter your musical passage using the following notation:"
                                 "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
-                                "\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4."
+                                "\nPlease enter your note(s) as any character a through g\n"
+                                "To change your octave, press o. The default octave is 4."
                                 "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
-                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note"
-                                "\nPress x to stop inputting notes and generate your audio file.\n"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
+                                "To raise or lower a note by a half step, use the . symbol to lower and the # symbol to raise\n"
+                                "eg: a. = A Flat, c# = C Sharp\n"
+                                "Press x to stop inputting notes and generate your audio file.\n"
                                 "\nEnter note(s):\n"
-                                "Enter rhythm: \n"
+                                "Enter rhythm:\n"
                                 "Please enter a valid rhythmic unit (1 = whole, 2 = half, 4 = quarter, 8 = eighth, 16 = sixteenth\n"
                                 "Enter note(s):\n"};
 
@@ -373,10 +411,13 @@ TEST(HandleInvalidTempo, Synthesizer)
                                 "\nInvalid input. Please enter a tempo between 20 & 200.\n"
                                 "\nPlease enter your musical passage using the following notation:"
                                 "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
-                                "\nPlease enter your note(s) as any character a through g\nTo change your octave, press o. The default octave is 4."
+                                "\nPlease enter your note(s) as any character a through g\n"
+                                "To change your octave, press o. The default octave is 4."
                                 "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
-                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note"
-                                "\nPress x to stop inputting notes and generate your audio file.\n\nEnter note(s):\n"};
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
+                                "To raise or lower a note by a half step, use the . symbol to lower and the # symbol to raise\n"
+                                "eg: a. = A Flat, c# = C Sharp\n"
+                                "Press x to stop inputting notes and generate your audio file.\n\nEnter note(s):\n"};
 
     std::istringstream input_stream("0\n120\nx\n");
     std::ostringstream output_stream;
@@ -391,4 +432,131 @@ TEST(HandleInvalidTempo, Synthesizer)
 
     CHECK_EQUAL(expectedPhrase, output_stream.str());
     CHECK_EQUAL(120, synth.getTempo());
+}
+
+TEST(ChangesOctave, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::istringstream input_stream("120\no\n2\na\n4\nx\n");
+    std::ostringstream output_stream;
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+    std::streambuf* orig_cout = std::cout.rdbuf(output_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+    std::cout.rdbuf(orig_cout);
+
+    CHECK_EQUAL(2, synth.getOctave());
+}
+
+TEST(HandlesInvalidOctave, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::string expectedPhrase {"\nWelcome to the command line synthesizer.\nPlease enter your tempo:\n"
+                                "\nPlease enter your musical passage using the following notation:"
+                                "\n(note(s)) (return) (rhythmic unit) (return) (note(s)) (return) (rhythmic unit) (return)... etc"
+                                "\nPlease enter your note(s) as any character a through g\n"
+                                "To change your octave, press o. The default octave is 4."
+                                "\nPlease enter your rhythmic unit as an integer, corresponding the following definitions:"
+                                "\n1 = whole note, 2 = half note, 4 = quarter note, 8 = eighth note, 16 = sixteenth note\n"
+                                "To raise or lower a note by a half step, use the . symbol to lower and the # symbol to raise\n"
+                                "eg: a. = A Flat, c# = C Sharp\n"
+                                "Press x to stop inputting notes and generate your audio file.\n\nEnter note(s):\n"
+                                "Please enter an octave between 0 - 8\n"
+                                "Invalid input. Please enter an octave between 0 - 8\n"
+                                "Enter note(s):\n"
+                                "Enter rhythm:\n"
+                                "Enter note(s):\n"};
+
+    std::istringstream input_stream("120\no\n15\n2\na\n4\nx\n");
+    std::ostringstream output_stream;
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+    std::streambuf* orig_cout = std::cout.rdbuf(output_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+    std::cout.rdbuf(orig_cout);
+
+    CHECK_EQUAL(expectedPhrase, output_stream.str());
+    CHECK_EQUAL(2, synth.getOctave());
+}
+
+TEST(CorrectlyModifiesPitchBasedOnFlats, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::istringstream input_stream("120\na.ce.\n4\nx\nchord\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+    std::ofstream newFile {synth.createAudioFile()};
+    synth.writeNotesFromUser(newFile);
+    synth.finalizeFile(newFile);
+
+    newFile.close();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ifstream testFile ("../../../tests/aflat_c_eflat-48kHz-16bit-120BPM-QuarterNote.wav");
+    CHECK(testFile.is_open());
+
+    std::ifstream notesFile ("chord.wav");
+    CHECK(notesFile.is_open());
+
+    std::istreambuf_iterator<char> testBegin(testFile);
+    std::istreambuf_iterator<char> notesBegin(notesFile);
+    std::istreambuf_iterator<char> end;
+    std::vector<char> testVec (testBegin, end);
+    std::vector<char> notesVec (notesBegin, end);
+
+    for (size_t i {0}; i < testVec.size(); ++i)
+    {
+        CHECK_EQUAL(testVec.at(i), notesVec.at(i));
+    }
+
+    std::remove("chord.wav");
+}
+
+TEST(CorrectlyModifiesPitchBasedOnSharps, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+
+    std::istringstream input_stream("120\nc#eg#\n4\nx\nchord\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+    std::ofstream newFile {synth.createAudioFile()};
+    synth.writeNotesFromUser(newFile);
+    synth.finalizeFile(newFile);
+
+    newFile.close();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ifstream testFile ("../../../tests/csharp_e_gsharp_48kHz-16bit-120BPM-QuarterNote.wav");
+    CHECK(testFile.is_open());
+
+    std::ifstream notesFile ("chord.wav");
+    CHECK(notesFile.is_open());
+
+    std::istreambuf_iterator<char> testBegin(testFile);
+    std::istreambuf_iterator<char> notesBegin(notesFile);
+    std::istreambuf_iterator<char> end;
+    std::vector<char> testVec (testBegin, end);
+    std::vector<char> notesVec (notesBegin, end);
+
+    for (size_t i {0}; i < testVec.size(); ++i)
+    {
+        CHECK_EQUAL(testVec.at(i), notesVec.at(i));
+    }
+
+    std::remove("chord.wav");
 }
