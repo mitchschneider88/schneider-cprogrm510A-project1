@@ -1,41 +1,31 @@
 #include "Oscillator.h"
 
-Oscillator::Oscillator(float frequency, float amplitude) : _frequency(frequency), _amplitude(amplitude)
+void Oscillator::setOffset(double offset)
 {
-    _offset = (2 * M_PI * _frequency / SAMPLE_RATE);
+    _phaseOffset = offset;
 }
 
-void Oscillator::setOffset(float offset)
+void Oscillator::setAmplitude(double amp)
 {
-    _offset = offset;
+    _amplitude = amp;
 }
 
-void Oscillator::setFrequency(float frequency)
-{
-    _frequency = frequency;
-}
-
-void Oscillator::setAmplitude(float amplitude)
-{
-    _amplitude = amplitude;
-}
-
-void Oscillator::setAngle(float angle)
+void Oscillator::setAngle(double angle)
 {
     _angle = angle;
 }
 
-float Oscillator::getAmplitude()
+double Oscillator::getOffset() const
+{
+    return _phaseOffset;
+}
+
+double Oscillator::getAmplitude() const
 {
     return _amplitude;
 }
 
-float Oscillator::getAngle()
+double Oscillator::getAngle() const
 {
     return _angle;
-}
-
-float Oscillator::getOffset()
-{
-    return _offset;
 }

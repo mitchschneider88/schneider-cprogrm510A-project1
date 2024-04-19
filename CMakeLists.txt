@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.27)
 
-set(CMAKE_CXX_STANDARD 20)
-
 project(Schneider-Project1 VERSION 1.0)
 
-set(SOURCE_FILES
-    src/Main.cpp src/Oscillator.cpp src/WavHeader.h)
+set(CMAKE_CXX_STANDARD 20)
 
-add_executable(${PROJECT_NAME}.exe ${SOURCE_FILES})
+add_library(synth src/Oscillator.cpp src/SineOscillator.cpp src/Synthesizer.cpp src/WavFileManager.cpp)
+
+add_subdirectory(src)
+add_subdirectory(tests)

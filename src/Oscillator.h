@@ -1,28 +1,28 @@
-#include <cmath> // use <numbers> for pi
-
-int SAMPLE_RATE {44100};
-int BIT_DEPTH {16};
+#include <cmath>
 
 class Oscillator
 {
 public:
-    
-    Oscillator(float frequency, float amplitude);
-    virtual float renderAudio() = 0;
-    
-    void setOffset(float offset);
-    void setFrequency(float frequency);
-    void setAmplitude(float amplitude);
-    void setAngle(float angle);
-    
-    float getAmplitude();
-    float getAngle();
-    float getOffset();
+    Oscillator() = default;
+    Oscillator(const Oscillator& osc) = default;
+    Oscillator(Oscillator&& osc) = delete;
+    Oscillator& operator=(const Oscillator& osc) = delete;
+    Oscillator& operator=(Oscillator&& osc) = delete;
+    virtual ~Oscillator() noexcept = default;
 
-private:    
+    virtual double renderAudio() = 0;
 
-    float _frequency {};
-    float _amplitude {};
-    float _angle {};
-    float _offset {};
+    void setOffset(double offset);
+    void setAmplitude(double amp);
+    void setAngle(double angle);
+
+    [[nodiscard]] double getOffset() const;
+    [[nodiscard]] double getAmplitude() const;
+    [[nodiscard]] double getAngle() const;
+
+private:
+
+    double _phaseOffset {};
+    double _amplitude {};
+    double _angle {};
 };

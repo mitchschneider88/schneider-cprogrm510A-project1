@@ -1,21 +1,52 @@
+#include "WavFileManager.h"
 #include "SineOscillator.h"
-#include <fstream>
-#include "WavHeader.h"
+#include <numbers>
+#include <vector>
+
 
 class Synthesizer
 {
 public:
-    Synthesizer(int sampleRate, int bitDepth);
-    // initialize wavHeader with correct sample rate / bit depth, etc, then prepare file with wavHeader, then accept audio data
 
-    void writeAsBytes(std::ofstream &file, int value, int byteSize); // use to write wav header and audio data to file with reinterpretcast<char*>
-    void prepareFile(std::ofstream &file); // write wav header to file
-    void addNote(char noteName, int time); // use to write audio data to file
+    Synthesizer(int sampleRate, int bitDepth);
+    Synthesizer(const Synthesizer& synth) = default;
+    Synthesizer(Synthesizer&& synth) = delete;
+    Synthesizer& operator=(const Synthesizer& synth) = delete;
+    Synthesizer& operator=(Synthesizer&& synth) = delete;
+    ~Synthesizer() noexcept = default;
+
+    void initializeTempo();
+    void updateOctave();
+
+    void welcomeUser();
+    void getInputFromUser();
+    [[nodiscard]] unsigned int getTempo() const;
+    [[nodiscard]] unsigned int getOctave() const;
+
+    std::ofstream createAudioFile();
+    void prepareFile(std::ostream& file);
+    void writeNotesFromUser(std::ostream& file);
+    void finalizeFile(std::ostream& file);
 
 private:
 
-    SineOscillator _osc {440, 0.5};
-    WavHeader _wavHeader;
-    const int _sampleRate;
-    const int _bitDepth;
+    WavFileManager _fileManager;
+    std::vector<float> parseNoteInput(const std::string& input);
+    unsigned int parseRhythmInput(int input);
+    float calculateFrequency(char note, char modifier);
+    unsigned int calculateNoteLength(int noteType);
+
+    SineOscillator _osc;
+    std::vector<std::pair<std::vector<float>, unsigned int>> _userInput;
+
+    int _sampleRate;
+    int _bitDepth;
+    unsigned int _octave {4};
+    unsigned int _tempo {};
+    double _maxAmplitude;
 };
+
+void resetInputBuffer();
+static bool isValidRhythmInput(int rhythm);
+static bool isValidNoteInput(char note);
+static bool isValidModifier(char modifier);
