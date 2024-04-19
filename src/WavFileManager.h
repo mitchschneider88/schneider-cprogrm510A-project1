@@ -5,7 +5,7 @@ class WavFileManager
 {
 public:
     void prepareFile(std::ostream &file);
-    void writeAsBytes(std::ostream &file, int value, int byteSize);
+    void writeAsBytes(std::ostream &file, long long value, int byteSize);
     void finalizeFile(std::ostream& file);
 
     void setWavHeaderSampleRate(int sr);
@@ -18,6 +18,6 @@ public:
 private:
 
     WavHeader _wavHeader;
-    int _preAudioPosition {};
-    int _postAudioPosition {};
+    std::streamoff _preAudioPosition {};
+    std::streamoff _postAudioPosition {};
 };

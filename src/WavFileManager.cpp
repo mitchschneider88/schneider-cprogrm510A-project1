@@ -22,7 +22,7 @@ void WavFileManager::prepareFile(std::ostream& file)
     setPreAudioPosition(file);
 }
 
-void WavFileManager::writeAsBytes(std::ostream& file, int value, int byteSize)
+void WavFileManager::writeAsBytes(std::ostream& file, long long value, int byteSize)
 {
     file.write(reinterpret_cast<const char*>(&value), byteSize);
 }
@@ -60,10 +60,10 @@ void WavFileManager::setWavHeaderBitDepth(int bd)
 
 void WavFileManager::setPreAudioPosition(std::ostream& file)
 {
-    _preAudioPosition = {static_cast<int>(file.tellp())};
+    _preAudioPosition = file.tellp();
 }
 
 void WavFileManager::setPostAudioPosition(std::ostream& file)
 {
-    _postAudioPosition = {static_cast<int>(file.tellp())};
+    _postAudioPosition = file.tellp();
 }

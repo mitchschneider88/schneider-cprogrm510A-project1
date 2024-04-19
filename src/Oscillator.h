@@ -5,10 +5,10 @@ class Oscillator
 public:
     Oscillator() = default;
     Oscillator(const Oscillator& osc) = default;
-    Oscillator(Oscillator&& osc) noexcept = default;
-    Oscillator& operator=(const Oscillator& osc) = default;
-    Oscillator& operator=(Oscillator&& osc) = default;
-    virtual ~Oscillator() = default;
+    Oscillator(Oscillator&& osc) = delete;
+    Oscillator& operator=(const Oscillator& osc) = delete;
+    Oscillator& operator=(Oscillator&& osc) = delete;
+    virtual ~Oscillator() noexcept = default;
 
     virtual double renderAudio() = 0;
 

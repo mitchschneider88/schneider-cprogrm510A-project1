@@ -10,10 +10,10 @@ public:
 
     Synthesizer(int sampleRate, int bitDepth);
     Synthesizer(const Synthesizer& synth) = default;
-    Synthesizer(Synthesizer&& synth) = default;
-    Synthesizer& operator=(const Synthesizer& other) = default;
-    Synthesizer& operator=(Synthesizer&& other) = default;
-    ~Synthesizer() = default;
+    Synthesizer(Synthesizer&& synth) = delete;
+    Synthesizer& operator=(const Synthesizer& synth) = delete;
+    Synthesizer& operator=(Synthesizer&& synth) = delete;
+    ~Synthesizer() noexcept = default;
 
     void initializeTempo();
     void updateOctave();
@@ -28,11 +28,9 @@ public:
     void writeNotesFromUser(std::ostream& file);
     void finalizeFile(std::ostream& file);
 
-
-    WavFileManager _fileManager;
-
 private:
 
+    WavFileManager _fileManager;
     std::vector<float> parseNoteInput(const std::string& input);
     unsigned int parseRhythmInput(int input);
     float calculateFrequency(char note, char modifier);

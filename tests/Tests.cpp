@@ -173,7 +173,59 @@ TEST(SetTempo, Synthesizer)
     CHECK_EQUAL(120, synth.getTempo());
 }
 
-TEST(CreatesCorectNumberOfSamples, Synthesizer)
+TEST(CreatesCorectNumberOfSamplesSixteenthNote, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+    WavFileManager fileManager;
+
+    std::istringstream input_stream("120\na\n16\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ostringstream notes;
+
+    fileManager.prepareFile(notes);
+    synth.writeNotesFromUser(notes);
+
+    int expectedSize {12044};
+    // amount of bytes that a sixteenth note at 120bpm equals (when each sample @ 48kHz takes up 2 bytes) + the .wav header
+
+    auto bytes {static_cast<int>(notes.tellp())};
+
+    CHECK_EQUAL(expectedSize, bytes);
+}
+
+TEST(CreatesCorectNumberOfSamplesEighthNote, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+    WavFileManager fileManager;
+
+    std::istringstream input_stream("120\na\n8\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ostringstream notes;
+
+    fileManager.prepareFile(notes);
+    synth.writeNotesFromUser(notes);
+
+    int expectedSize {24044};
+    // amount of bytes that an eighth note at 120bpm equals (when each sample @ 48kHz takes up 2 bytes) + the .wav header
+
+    auto bytes {static_cast<int>(notes.tellp())};
+
+    CHECK_EQUAL(expectedSize, bytes);
+}
+
+TEST(CreatesCorectNumberOfSamplesQuarterNote, Synthesizer)
 {
     Synthesizer synth(48000, 16);
     WavFileManager fileManager;
@@ -199,6 +251,59 @@ TEST(CreatesCorectNumberOfSamples, Synthesizer)
     CHECK_EQUAL(expectedSize, bytes);
 }
 
+TEST(CreatesCorectNumberOfSamplesHalfNote, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+    WavFileManager fileManager;
+
+    std::istringstream input_stream("120\na\n2\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ostringstream notes;
+
+    fileManager.prepareFile(notes);
+    synth.writeNotesFromUser(notes);
+
+    int expectedSize {96044};
+    // amount of bytes that a half note at 120bpm equals (when each sample @ 48kHz takes up 2 bytes) + the .wav header
+
+    auto bytes {static_cast<int>(notes.tellp())};
+
+    CHECK_EQUAL(expectedSize, bytes);
+}
+
+TEST(CreatesCorectNumberOfSamplesWholeNote, Synthesizer)
+{
+    Synthesizer synth(48000, 16);
+    WavFileManager fileManager;
+
+    std::istringstream input_stream("120\na\n1\nx\n");
+
+    std::streambuf* orig_cin = std::cin.rdbuf(input_stream.rdbuf());
+
+    synth.getInputFromUser();
+
+    std::cin.rdbuf(orig_cin);
+
+    std::ostringstream notes;
+
+    fileManager.prepareFile(notes);
+    synth.writeNotesFromUser(notes);
+
+    int expectedSize {192044};
+    // amount of bytes that a whole note at 120bpm equals (when each sample @ 48kHz takes up 2 bytes) + the .wav header
+
+    auto bytes {static_cast<int>(notes.tellp())};
+
+    CHECK_EQUAL(expectedSize, bytes);
+}
+
+
 TEST(CreatesCorectNumberOfSamplesLongerPhrase, Synthesizer)
 {
     Synthesizer synth(48000, 16);
@@ -218,7 +323,7 @@ TEST(CreatesCorectNumberOfSamplesLongerPhrase, Synthesizer)
     synth.writeNotesFromUser(notes);
 
     int expectedSize {336044};
-    // amount of bytes that a quarter note, half note, wholte note at 120bpm equals
+    // amount of bytes that a quarter note, half note, whole note at 120bpm equals
     // when each sample @ 48000hz takes up 2 bytes + the .wav header
 
     auto bytes {static_cast<int>(notes.tellp())};
